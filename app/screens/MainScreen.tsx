@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { View, Text, FlatList, StyleSheet, Dimensions, Platform } from "react-native"
 import { Screen } from "../components/Screen"
 import { Button } from "../components/Button"
+import { Card } from "../components/Card"
 import { useNavigation } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { AppStackParamList } from "../navigators/AppNavigator"
@@ -84,10 +85,16 @@ export const MainScreen = () => {
     fetchUsers()
   }, [])
 
-  const getCardColor = (age: number) => {
-    if (age < 30) return "#ccc"   // gray
-    if (age <= 50) return "#f66"  // red
-    return "#66f"                 // blue
+  const getCardPreset = (age: number): "default" | "reversed" => {
+    // Using "reversed" preset for older users to make them stand out
+    return age > 50 ? "reversed" : "default"
+  }
+
+  const getCardStyle = (age: number) => {
+    // Custom background colors based on age
+    if (age < 30) return { backgroundColor: "#ccc" }   // gray
+    if (age <= 50) return { backgroundColor: "#f66" }  // red
+    return { backgroundColor: "#66f" }                 // blue
   }
 
   // Calculate responsive columns
@@ -98,25 +105,29 @@ export const MainScreen = () => {
   }
 
   const renderItem = ({ item }: { item: User }) => (
-    <View style={[
-      styles.card, 
-      { backgroundColor: getCardColor(item.age) },
-      getNumColumns() > 1 && styles.cardGrid
-    ]}>
-      <Text style={[styles.name, isSmallScreen && styles.nameSmall]}>{item.name}</Text>
-      <Text style={[styles.cardText, isSmallScreen && styles.cardTextSmall]}>
-        Age: {item.age}
-      </Text>
-      <Text style={[styles.cardText, isSmallScreen && styles.cardTextSmall]}>
-        Fees Paid: ${item.feesPaid}
-      </Text>
-      <Text style={[styles.cardText, isSmallScreen && styles.cardTextSmall]}>
-        Date: {item.date}
-      </Text>
-      <Text style={[styles.cardText, isSmallScreen && styles.cardTextSmall]}>
-        Location: {item.location}
-      </Text>
-    </View>
+    <Card
+      preset={getCardPreset(item.age)}
+      heading={item.name}
+      content={`Age: ${item.age}\nFees Paid: $${item.feesPaid}\nLocation: ${item.location}`}
+      footer={`Date: ${item.date}`}
+      style={[
+        getNumColumns() > 1 && styles.cardGrid,
+        getCardStyle(item.age),
+        styles.cardSpacing
+      ]}
+      headingStyle={[
+        styles.cardHeading,
+        isSmallScreen && styles.cardHeadingSmall
+      ]}
+      contentStyle={[
+        styles.cardContent,
+        isSmallScreen && styles.cardContentSmall
+      ]}
+      footerStyle={[
+        styles.cardFooter,
+        isSmallScreen && styles.cardFooterSmall
+      ]}
+    />
   )
 
   return (
@@ -196,40 +207,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 8,
   },
-  card: {
-    padding: isTablet ? 20 : isSmallScreen ? 12 : 16,
-    borderRadius: 12,
-    marginBottom: isTablet ? 16 : 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   cardGrid: {
     flex: 1,
     marginHorizontal: 8,
     maxWidth: isLargeScreen ? '30%' : '45%',
   },
-  name: {
+  cardSpacing: {
+    marginBottom: isTablet ? 16 : 12,
+  },
+  cardHeading: {
     fontSize: isTablet ? 20 : isSmallScreen ? 16 : 18,
-    fontWeight: "600",
-    marginBottom: 4,
     color: '#fff',
   },
-  nameSmall: {
+  cardHeadingSmall: {
     fontSize: 14,
   },
-  cardText: {
+  cardContent: {
     fontSize: isTablet ? 16 : isSmallScreen ? 12 : 14,
     color: '#fff',
-    marginBottom: 2,
+    lineHeight: isTablet ? 22 : isSmallScreen ? 16 : 18,
   },
-  cardTextSmall: {
+  cardContentSmall: {
     fontSize: 11,
+    lineHeight: 14,
+  },
+  cardFooter: {
+    fontSize: isTablet ? 14 : isSmallScreen ? 10 : 12,
+    color: '#fff',
+  },
+  cardFooterSmall: {
+    fontSize: 9,
   },
   buttonGroup: {
     marginTop: 24,
